@@ -35,6 +35,13 @@ class _MovieCardState extends State<MovieCard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
+    // Dynamic sizes for mobile vs TV/Desktop
+    final double cardWidth = isMobile ? 160.0 : 260.0;
+    final double cardHeight = isMobile ? 90.0 : 146.0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: MouseRegion(
@@ -67,8 +74,8 @@ class _MovieCardState extends State<MovieCard> {
                   // Poster Container
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    width: 260,
-                    height: 146,
+                    width: cardWidth,
+                    height: cardHeight,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       border: _isHighlighted
@@ -173,7 +180,7 @@ class _MovieCardState extends State<MovieCard> {
 
                   // Title
                   SizedBox(
-                    width: 260,
+                    width: cardWidth,
                     child: Text(
                       widget.movie.title,
                       style: TextStyle(
@@ -189,7 +196,7 @@ class _MovieCardState extends State<MovieCard> {
 
                   // Genre / Type subtitle
                   SizedBox(
-                    width: 260,
+                    width: cardWidth,
                     child: const Text(
                       'حلقات متوفرة مجاناً',
                       style: TextStyle(

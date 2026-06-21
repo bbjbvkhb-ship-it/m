@@ -762,6 +762,101 @@ class _PlayerScreenState extends State<PlayerScreen>
   // ─────────────────────────────────────────────
   Widget _buildBottomBar() {
     final hasEps = _episodes.isNotEmpty && _epIndex != null;
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    if (isMobile) {
+      return ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            color: Colors.black.withValues(alpha: 0.5),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Row 1: Seekbar and Duration
+                Row(
+                  children: [
+                    Expanded(child: _buildSeekBar()),
+                    if (_initialized && !widget.isLive) ...[
+                      const SizedBox(width: 14),
+                      _buildDuration(),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Row 2: Control buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Play/Pause, Rewind, Forward
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _iconBtn(
+                            focusNode: _rewindFocus,
+                            icon: Icons.fast_rewind_rounded,
+                            onTap: () => _seek(-15)),
+                        const SizedBox(width: 12),
+                        _playPauseBtn(),
+                        const SizedBox(width: 12),
+                        _iconBtn(
+                            focusNode: _forwardFocus,
+                            icon: Icons.fast_forward_rounded,
+                            onTap: () => _seek(15)),
+                      ],
+                    ),
+                    // Mute, CC, SubSize, Episodes, Quality, Aspect
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _iconBtn(
+                            focusNode: _muteFocus,
+                            icon: _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                            onTap: _toggleMute),
+                        const SizedBox(width: 8),
+                        _ccBtn(),
+                        const SizedBox(width: 8),
+                        _iconBtn(
+                            focusNode: _subSizeFocus,
+                            icon: Icons.text_fields_rounded,
+                            onTap: _cycleSubSize),
+                        const SizedBox(width: 8),
+                        if (hasEps) ...[
+                          _iconBtn(
+                              focusNode: _epsFocus,
+                              icon: Icons.playlist_play_rounded,
+                              onTap: () {
+                                setState(() => _showEpisodes = !_showEpisodes);
+                                _resetHideTimer();
+                              },
+                              active: _showEpisodes),
+                          const SizedBox(width: 8),
+                        ],
+                        _iconBtn(
+                            focusNode: _qualityFocus,
+                            icon: Icons.settings_rounded,
+                            onTap: () {
+                              setState(() => _showQuality = true);
+                              _resetHideTimer();
+                            }),
+                        const SizedBox(width: 8),
+                        _iconBtn(
+                            focusNode: _aspectFocus,
+                            icon: Icons.aspect_ratio_rounded,
+                            onTap: _cycleAspect),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Default TV/Desktop layout (single row)
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),

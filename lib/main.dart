@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'providers/movie_provider.dart';
 import 'screens/home_screen.dart';
-import 'screens/netflix_home_screen.dart';
-import 'theme/netflix_theme.dart';
 import 'widgets/app_wrapper.dart';
 
 void main() async {

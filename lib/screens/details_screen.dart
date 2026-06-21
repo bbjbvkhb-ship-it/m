@@ -1099,13 +1099,15 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   Widget _buildTopBar({required bool isTV}) {
+    final topPadding = isTV ? 0.0 : MediaQuery.of(context).padding.top;
+    final height = isTV ? 64.0 : (60.0 + topPadding);
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          height: isTV ? 64 : 90,
+          height: height,
           padding: EdgeInsets.only(
-            top: isTV ? 0 : 40, left: 20, right: 20),
+            top: topPadding, left: 20, right: 20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,

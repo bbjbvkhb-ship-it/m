@@ -291,15 +291,18 @@ class _SearchScreenState extends State<SearchScreen> {
                           LayoutBuilder(
                             builder: (context, constraints) {
                               final width = constraints.maxWidth;
-                              int crossAxisCount = (width / 180).floor();
+                              final isDesktopOrTV = width >= 700;
+                              final targetWidth = isDesktopOrTV ? 280 : 180;
+                              int crossAxisCount = (width / targetWidth).floor();
                               if (crossAxisCount < 2) crossAxisCount = 2;
+                              final childAspectRatio = isDesktopOrTV ? 1.25 : 1.15;
                               
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: crossAxisCount,
-                                  childAspectRatio: 0.58,
+                                  childAspectRatio: childAspectRatio,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
                                 ),
@@ -340,17 +343,20 @@ class _SearchScreenState extends State<SearchScreen> {
                       Expanded(
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            final width = constraints.maxWidth;
-                            int crossAxisCount = (width / 180).floor();
-                            if (crossAxisCount < 2) crossAxisCount = 2;
+                             final width = constraints.maxWidth;
+                             final isDesktopOrTV = width >= 700;
+                             final targetWidth = isDesktopOrTV ? 280 : 180;
+                             int crossAxisCount = (width / targetWidth).floor();
+                             if (crossAxisCount < 2) crossAxisCount = 2;
+                             final childAspectRatio = isDesktopOrTV ? 1.25 : 1.15;
 
-                            return GridView.builder(
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                childAspectRatio: 0.58, // Exact matching poster ratio to prevent squashing
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                              ),
+                             return GridView.builder(
+                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                 crossAxisCount: crossAxisCount,
+                                 childAspectRatio: childAspectRatio, // Exact matching poster ratio to prevent squashing
+                                 crossAxisSpacing: 12,
+                                 mainAxisSpacing: 12,
+                               ),
                               itemCount: _searchResults.length,
                               itemBuilder: (context, index) {
                                 final movie = _searchResults[index];

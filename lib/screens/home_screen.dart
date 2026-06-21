@@ -945,18 +945,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                       final heroMovie = _heroMovie ?? firstCategoryMovies.first;
                       final heroHeight = isDesktopOrTV ? MediaQuery.of(context).size.height * 0.75 : 450.0; // Responsive hero height
+                      final topPadding = MediaQuery.of(context).padding.top;
+                      final appBarHeight = 60.0 + topPadding;
 
                       return Scaffold(
                         backgroundColor: background,
                         extendBodyBehindAppBar: true,
                         endDrawer: _buildMobileDrawer(context),
                         appBar: PreferredSize(
-                          preferredSize: const Size.fromHeight(70),
+                          preferredSize: Size.fromHeight(appBarHeight),
                           child: Container(
+                            height: appBarHeight,
                             color: const Color(0xFF141414).withValues(alpha: 0.95), // Dark background for the app bar
-                            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
-                            child: SafeArea(
-                              child: Row(
+                            padding: EdgeInsets.only(top: topPadding + 6, left: 24.0, right: 24.0, bottom: 6.0),
+                            child: Row(
                                   children: [
                                     // Left Side: Search, Language, Profile
                                   _AppBarIconButton(
@@ -1032,7 +1034,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                          ),
                         ),
                         body: Stack(
                           children: [
@@ -1276,15 +1277,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Padding(
-                                              padding: const EdgeInsets.fromLTRB(40.0, 24.0, 40.0, 12.0),
+                                              padding: EdgeInsets.fromLTRB(isDesktopOrTV ? 40.0 : 20.0, 24.0, isDesktopOrTV ? 40.0 : 20.0, 12.0),
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
                                                   Text(
                                                     categoryTitle,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       color: onSurface,
-                                                      fontSize: 28,
+                                                      fontSize: isDesktopOrTV ? 28.0 : 20.0,
                                                       fontWeight: FontWeight.bold,
                                                       fontFamily: 'Cairo',
                                                     ),
@@ -1306,10 +1307,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                             ),
                                             SizedBox(
-                                              height: 320,
+                                              height: isDesktopOrTV ? 320.0 : 200.0,
                                               child: ListView.builder(
                                                 scrollDirection: Axis.horizontal,
-                                                padding: const EdgeInsets.symmetric(horizontal: 32),
+                                                padding: EdgeInsets.symmetric(horizontal: isDesktopOrTV ? 32.0 : 20.0),
                                                 itemCount: categoryMovies.length,
                                                 itemBuilder: (context, index) {
                                                   final movie = categoryMovies[index];
@@ -1333,7 +1334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 },
                                               ),
                                             ),
-                                            const SizedBox(height: 32),
+                                            SizedBox(height: isDesktopOrTV ? 32.0 : 16.0),
                                           ],
                                         );
                                       }).toList(),
@@ -1383,16 +1384,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: LayoutBuilder(
                                             builder: (context, constraints) {
                                               final width = constraints.maxWidth;
-                                              // Dynamically calculate columns based on card width of 180px
-                                              int crossAxisCount = (width / 180).floor();
+                                              // Dynamically calculate columns based on card width
+                                              final targetWidth = isDesktopOrTV ? 280 : 180;
+                                              int crossAxisCount = (width / targetWidth).floor();
                                               if (crossAxisCount < 2) crossAxisCount = 2;
+                                              final childAspectRatio = isDesktopOrTV ? 1.25 : 1.15;
 
                                               return GridView.builder(
                                                 shrinkWrap: true,
                                                 physics: const NeverScrollableScrollPhysics(),
                                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                                   crossAxisCount: crossAxisCount,
-                                                  childAspectRatio: 0.58, // Precise ratio to prevent vertical overflow/squashing
+                                                  childAspectRatio: childAspectRatio, // Precise ratio to prevent vertical overflow/squashing
                                                   crossAxisSpacing: 12,
                                                   mainAxisSpacing: 12,
                                                 ),
