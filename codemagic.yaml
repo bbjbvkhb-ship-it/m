@@ -19,7 +19,12 @@ workflows:
           flutter pub get
       - name: Build iOS App (Unsigned)
         script: |
-          # builds the release IPA without code signing
+          # builds the release iOS app without code signing
           flutter build ipa --release --no-codesign
+      - name: Package App Bundle into Zip
+        script: |
+          cd build/ios/iphoneos
+          zip -r Runner.zip Runner.app
     artifacts:
+      - build/ios/iphoneos/*.zip
       - build/ios/ipa/*.ipa
