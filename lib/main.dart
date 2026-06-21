@@ -61,14 +61,11 @@ class TvPlusApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final movieProvider = Provider.of<MovieProvider>(context);
-    final isNetflix = movieProvider.selectedTheme == 'netflix';
-
     return MaterialApp(
       title: 'TVplus',
       debugShowCheckedModeBanner: false,
-      theme: isNetflix ? NetflixTheme.tvTheme : _theme,
-      home: isNetflix ? const NetflixHomeScreen() : const AppWrapper(child: HomeScreen()),
+      theme: _theme,
+      home: const AppWrapper(child: HomeScreen()),
       builder: (context, child) {
         return Shortcuts(
           shortcuts: <LogicalKeySet, Intent>{

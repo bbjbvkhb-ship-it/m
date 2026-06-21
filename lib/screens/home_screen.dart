@@ -446,6 +446,70 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            if (!isDesktopOrTV) ...[
+              // User Profile Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'مرحباً بك',
+                        style: TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'Cairo'),
+                      ),
+                      Text(
+                        'تسجيل الدخول',
+                        style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: primary.withValues(alpha: 0.5), width: 1.5),
+                    ),
+                    child: const Icon(Icons.person_rounded, color: primary, size: 22),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Language Switcher Tile
+              InkWell(
+                onTap: () {},
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.arrow_drop_down_rounded, color: Colors.white70, size: 20),
+                      Text(
+                        'Ar',
+                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
+                      ),
+                      Spacer(),
+                      Text(
+                        'اللغة',
+                        style: TextStyle(color: Colors.white70, fontSize: 13, fontFamily: 'Cairo'),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.language_rounded, color: primary, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(color: Colors.white12, height: 1),
+              const SizedBox(height: 16),
+            ],
             // Categories List
             Expanded(
               child: ListView.builder(
@@ -580,67 +644,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 },
-              ),
-            ),
-            const SizedBox(height: 12),
-            Focus(
-              onKeyEvent: (node, event) {
-                if (event is KeyDownEvent) {
-                  final key = event.logicalKey;
-                  if (key == LogicalKeyboardKey.select ||
-                      key == LogicalKeyboardKey.enter ||
-                      key == LogicalKeyboardKey.numpadEnter ||
-                      key == LogicalKeyboardKey.space) {
-                    Provider.of<MovieProvider>(context, listen: false).setTheme('netflix');
-                    if (!isDesktopOrTV) {
-                      Navigator.pop(context);
-                    }
-                    return KeyEventResult.handled;
-                  }
-                }
-                return KeyEventResult.ignored;
-              },
-              child: Builder(
-                builder: (context) {
-                  final hasFocus = Focus.of(context).hasFocus;
-                  return InkWell(
-                    onTap: () {
-                      Provider.of<MovieProvider>(context, listen: false).setTheme('netflix');
-                      if (!isDesktopOrTV) {
-                        Navigator.pop(context);
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: hasFocus ? const Color(0xFFE50914).withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
-                        border: Border.all(
-                          color: hasFocus ? const Color(0xFFE50914) : Colors.white24,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.palette_rounded, color: Color(0xFFE50914), size: 18),
-                          SizedBox(width: 8),
-                          Text(
-                            'التبديل لمظهر Netflix',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Cairo',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
               ),
             ),
           ],
@@ -964,11 +967,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Navigator.push(context, MaterialPageRoute(builder: (context) => const SearchScreen())).then((_) => _resumeHeroVideo());
                                     },
                                   ),
-                                  const SizedBox(width: 24),
-                                  const Text('اللغة (Ar)', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Cairo')),
-                                  const SizedBox(width: 24),
-                                  const Text('تسجيل الدخول', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Cairo')),
-                                  
+                                  if (isDesktopOrTV) ...[
+                                    const SizedBox(width: 24),
+                                    const Text('اللغة (Ar)', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Cairo')),
+                                    const SizedBox(width: 24),
+                                    const Text('تسجيل الدخول', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Cairo')),
+                                  ],
                                   const Spacer(),
 
                                   // Right Side: Links and Logo
@@ -1102,7 +1106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     const SizedBox(height: 180), // Perfect top offset matching Apple TV details display
                                     Padding(
-                                      padding: const EdgeInsets.only(left: 60, right: 20, bottom: 20),
+                                      padding: EdgeInsets.only(left: isDesktopOrTV ? 60.0 : 20.0, right: 20.0, bottom: 20.0),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
