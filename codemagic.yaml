@@ -1,0 +1,25 @@
+workflows:
+  ios-workflow:
+    name: iOS Build (Unsigned)
+    instance_type: mac_mini_co2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
+    scripts:
+      - name: Fetch Flutter dependencies
+        script: |
+          flutter pub get
+      - name: Build iOS App (Unsigned)
+        script: |
+          # builds the release IPA without code signing
+          flutter build ipa --release --no-codesign
+    artifacts:
+      - build/ios/ipa/*.ipa
