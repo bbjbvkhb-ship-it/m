@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:http/http.dart' as http;
 import '../services/update_checker_service.dart';
 
 class UpdateDialog extends StatelessWidget {
@@ -15,29 +19,134 @@ class UpdateDialog extends StatelessWidget {
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.8),
       builder: (BuildContext context) {
-        return UpdateDialog(updateInfo: updateInfo);
+        return _UpdateDialogContent(updateInfo: updateInfo);
       },
     );
   }
 
-  Future<void> _launchUpdate(BuildContext context) async {
-    final bool isAndroid = Theme.of(context).platform == TargetPlatform.android;
-    final String urlString = isAndroid ? updateInfo.apkUrl : updateInfo.ipaUrl;
-    final String fallbackUrl = urlString.isNotEmpty ? urlString : (updateInfo.apkUrl.isNotEmpty ? updateInfo.apkUrl : updateInfo.ipaUrl);
+  @override
+  Widget build(BuildContext context) {
+    return _UpdateDialogContent(updateInfo: updateInfo);
+  }
+}
 
-    if (fallbackUrl.isNotEmpty) {
+class _UpdateDialogContent extends StatefulWidget {
+  final UpdateInfo updateInfo;
+
+  const _UpdateDialogContent({Key? key, required this.updateInfo}) : super(key: key);
+
+  @override
+  State<_UpdateDialogContent> createState() => _UpdateDialogContentState();
+}
+
+class _UpdateDialogContentState extends State<_UpdateDialogContent> {
+  bool _isDownloading = false;
+  double _progress = 0.0; // from 0.0 to 1.0
+  String _statusText = '';
+
+  Future<void> _startDownloadAndInstall(BuildContext context) async {
+    final bool isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    final String urlString = isAndroid ? widget.updateInfo.apkUrl : widget.updateInfo.ipaUrl;
+    final String fallbackUrl = urlString.isNotEmpty ? urlString : (widget.updateInfo.apkUrl.isNotEmpty ? widget.updateInfo.apkUrl : widget.updateInfo.ipaUrl);
+
+    if (fallbackUrl.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('رابط التحديث غير متوفر', style: TextStyle(fontFamily: 'Cairo')),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!isAndroid) {
+      // Fallback for iOS: launch in browser
       final Uri url = Uri.parse(fallbackUrl);
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تعذر فتح رابط التحديث تلقائياً', style: TextStyle(fontFamily: 'Cairo')),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
+      }
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
+    // Android: Download APK locally and install it
+    setState(() {
+      _isDownloading = true;
+      _progress = 0.0;
+      _statusText = 'جاري الاتصال بالسيرفر...';
+    });
+
+    try {
+      final client = http.Client();
+      final request = http.Request('GET', Uri.parse(fallbackUrl));
+      final response = await client.send(request).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        throw Exception('Server returned status code ${response.statusCode}');
+      }
+
+      final contentLength = response.contentLength ?? 0;
+
+      final directory = await getTemporaryDirectory();
+      final String apkPath = '${directory.path}/app-update.apk';
+      final file = File(apkPath);
+
+      if (await file.exists()) {
+        await file.delete();
+      }
+
+      final iosink = file.openWrite();
+      int downloaded = 0;
+
+      await for (var chunk in response.stream) {
+        iosink.add(chunk);
+        downloaded += chunk.length;
+
+        if (contentLength > 0) {
+          setState(() {
+            _progress = downloaded / contentLength;
+            _statusText = 'جاري تنزيل التحديث... (${(_progress * 100).toStringAsFixed(0)}%)';
+          });
+        } else {
+          setState(() {
+            _statusText = 'جاري تنزيل التحديث... (${(downloaded / 1024 / 1024).toStringAsFixed(2)} MB)';
+          });
         }
+      }
+
+      await iosink.close();
+      client.close();
+
+      setState(() {
+        _statusText = 'جاري فتح مثبت الحزم...';
+        _progress = 1.0;
+      });
+
+      // Trigger Android installer
+      final result = await OpenFilex.open(apkPath);
+      debugPrint('OpenFilex result: ${result.message}');
+
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      debugPrint('Download error: $e');
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+        });
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل تحميل التحديث: $e', style: const TextStyle(fontFamily: 'Cairo')),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
     }
   }
@@ -78,8 +187,8 @@ class UpdateDialog extends StatelessWidget {
                       color: primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.system_update_rounded,
+                    child: Icon(
+                      _isDownloading ? Icons.download_rounded : Icons.system_update_rounded,
                       color: primary,
                       size: 40,
                     ),
@@ -87,9 +196,9 @@ class UpdateDialog extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Title
-                  const Text(
-                    'تحديث جديد متوفر!',
-                    style: TextStyle(
+                  Text(
+                    _isDownloading ? 'تحميل التحديث الجديد' : 'تحديث جديد متوفر!',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -100,7 +209,7 @@ class UpdateDialog extends StatelessWidget {
 
                   // Version tag
                   Text(
-                    'الإصدار الجديد: ${updateInfo.version}',
+                    'الإصدار الجديد: ${widget.updateInfo.version}',
                     style: const TextStyle(
                       color: primary,
                       fontSize: 14,
@@ -110,73 +219,93 @@ class UpdateDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Changelog title
-                  const Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'ما الجديد في هذا التحديث:',
-                      style: TextStyle(
+                  if (_isDownloading) ...[
+                    // Progress UI
+                    Text(
+                      _statusText,
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
                         fontFamily: 'Cairo',
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // Changelog body
-                  Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(maxHeight: 120),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: _progress > 0.0 ? _progress : null,
+                        color: primary,
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        minHeight: 8,
+                      ),
                     ),
-                    child: SingleChildScrollView(
+                  ] else ...[
+                    // Changelog title
+                    const Align(
+                      alignment: Alignment.centerRight,
                       child: Text(
-                        updateInfo.changelog.isNotEmpty
-                            ? updateInfo.changelog
-                            : 'تحسينات وإصلاحات عامة في أداء التطبيق.',
-                        style: const TextStyle(
+                        'ما الجديد في هذا التحديث:',
+                        style: TextStyle(
                           color: Colors.white70,
-                          fontSize: 13,
-                          height: 1.6,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                           fontFamily: 'Cairo',
                         ),
-                        textDirection: TextDirection.rtl,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 6),
 
-                  // Action Buttons
-                  Row(
-                    children: [
-                      // Later Button
-                      Expanded(
-                        child: _FocusableDialogButton(
-                          label: 'لاحقاً',
-                          isPrimary: false,
-                          onPressed: () => Navigator.of(context).pop(),
+                    // Changelog body
+                    Container(
+                      width: double.infinity,
+                      constraints: const BoxConstraints(maxHeight: 120),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Text(
+                          widget.updateInfo.changelog.isNotEmpty
+                              ? widget.updateInfo.changelog
+                              : 'تحسينات وإصلاحات عامة في أداء التطبيق.',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            height: 1.6,
+                            fontFamily: 'Cairo',
+                          ),
+                          textDirection: TextDirection.rtl,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      // Update Button
-                      Expanded(
-                        child: _FocusableDialogButton(
-                          label: 'تحديث الآن',
-                          isPrimary: true,
-                          autofocus: true,
-                          onPressed: () {
-                            _launchUpdate(context);
-                            Navigator.of(context).pop();
-                          },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Action Buttons
+                    Row(
+                      children: [
+                        // Later Button
+                        Expanded(
+                          child: _FocusableDialogButton(
+                            label: 'لاحقاً',
+                            isPrimary: false,
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 12),
+                        // Update Button
+                        Expanded(
+                          child: _FocusableDialogButton(
+                            label: 'تحديث الآن',
+                            isPrimary: true,
+                            autofocus: true,
+                            onPressed: () => _startDownloadAndInstall(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

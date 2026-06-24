@@ -1,7 +1,7 @@
 {
-  "version": "1.0.2",
-  "build_number": 3,
+  "version": "1.0.3",
+  "build_number": 4,
   "apk_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/app-release.apk",
   "ipa_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/Runner.ipa",
-  "changelog": "- إزالة بنر شهر محرم الحرام التجريبي.\n- اختبار تحديث تلقائي حقيقي لإزالة البنرات ديناميكياً."
+  "changelog": "- تفعيل التحديث التلقائي بالكامل من داخل التطبيق (دون الحاجة لفتح المتصفح).\n- إضافة شريط تحميل يوضح تقدم تنزيل التحديث."
 }
