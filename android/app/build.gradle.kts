@@ -20,11 +20,13 @@ android {
 
     signingConfigs {
         create("release") {
-            // TODO: replace with your keystore path and passwords
-            storeFile = file("keystore/my_release_key.jks")
-            storePassword = "Haider1122"
-            keyAlias = "my_key_alias"
-            keyPassword = "Haider1122"
+            val keystoreFile = file("keystore/my_release_key.jks")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = "Haider1122"
+                keyAlias = "my_key_alias"
+                keyPassword = "Haider1122"
+            }
         }
     }
 
@@ -39,7 +41,12 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val keystoreFile = file("keystore/my_release_key.jks")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
             // minifyEnabled false // optional
         }
         debug {
