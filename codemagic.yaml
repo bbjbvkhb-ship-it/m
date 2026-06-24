@@ -1,4 +1,27 @@
 workflows:
+  android-workflow:
+    name: Android Build (Release APK)
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    environment:
+      flutter: stable
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
+    scripts:
+      - name: Fetch dependencies
+        script: |
+          flutter pub get
+      - name: Build APK
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+
   ios-workflow:
     name: iOS Build (Unsigned)
     instance_type: mac_mini_m1
