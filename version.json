@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "build_number": 1,
+  "version": "1.0.1",
+  "build_number": 2,
   "apk_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/app-release.apk",
   "ipa_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/Runner.ipa",
-  "changelog": "إصلاح مشاكل التركيز وشاشة البحث والرجوع بالريموت لأجهزة Android TV."
+  "changelog": "- إضافة بنر شهر محرم الحرام التجريبي في الصفحة الرئيسية.\n- تحسينات وإصلاحات عامة في شاشات التلفاز."
 }
