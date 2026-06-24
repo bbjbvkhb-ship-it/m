@@ -29,6 +29,8 @@ void main() async {
 class TvPlusApp extends StatelessWidget {
   const TvPlusApp({super.key});
 
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   // ── Static theme – created once, never rebuilt ──
   static final _theme = ThemeData(
     brightness: Brightness.dark,
@@ -60,6 +62,7 @@ class TvPlusApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'TVplus',
       debugShowCheckedModeBanner: false,
       theme: _theme,
@@ -78,6 +81,20 @@ class TvPlusApp extends StatelessWidget {
             },
             child: Focus(
               autofocus: true,
+              onKeyEvent: (node, event) {
+                if (event is KeyDownEvent) {
+                  final k = event.logicalKey;
+                  if (k == LogicalKeyboardKey.goBack ||
+                      k == LogicalKeyboardKey.escape) {
+                    final nav = navigatorKey.currentState;
+                    if (nav != null && nav.canPop()) {
+                      nav.pop();
+                      return KeyEventResult.handled;
+                    }
+                  }
+                }
+                return KeyEventResult.ignored;
+              },
               child: child!,
             ),
           ),

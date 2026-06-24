@@ -573,7 +573,11 @@ class _PlayerScreenState extends State<PlayerScreen>
         _resetHideTimer();
         return KeyEventResult.handled;
       }
-      // Let PopScope / Navigator handle back navigation to exit the player
+      // Explicitly pop the navigator to prevent exit on Android TV
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+        return KeyEventResult.handled;
+      }
       return KeyEventResult.ignored;
     }
 

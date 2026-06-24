@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "build_number": 1,
+  "apk_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/app-release.apk",
+  "ipa_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/Runner.ipa",
+  "changelog": "إصلاح مشاكل التركيز وشاشة البحث والرجوع بالريموت لأجهزة Android TV."
+}

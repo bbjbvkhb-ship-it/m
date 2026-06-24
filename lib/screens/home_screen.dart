@@ -15,6 +15,8 @@ import 'player_screen.dart';
 import '../widgets/tv_plus_logos.dart';
 import '../services/new_episode_checker_service.dart';
 import '../widgets/new_episode_modal.dart';
+import '../services/update_checker_service.dart';
+import '../widgets/update_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -320,9 +322,23 @@ class _HomeScreenState extends State<HomeScreen> {
     _mainScrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MovieProvider>(context, listen: false).loadMovies();
+      // فحص التحديثات البرمجية بعد 5 ثوانٍ من تشغيل التطبيق
+      Future.delayed(const Duration(seconds: 5), _checkForUpdates);
       // فحص الحلقات الجديدة بعد تأخير كافٍ حتى لا يتنافس مع تحميل الصفحة
       Future.delayed(const Duration(seconds: 15), _checkForNewEpisodes);
     });
+  }
+
+  Future<void> _checkForUpdates() async {
+    if (!mounted) return;
+    try {
+      final updateInfo = await UpdateCheckerService.checkForUpdates();
+      if (updateInfo != null && mounted) {
+        await UpdateDialog.show(context, updateInfo);
+      }
+    } catch (_) {
+      // نتجاهل أي خطأ لكي لا يؤثر على تشغيل التطبيق
+    }
   }
 
   Future<void> _checkForNewEpisodes() async {

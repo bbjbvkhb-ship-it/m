@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/movie.dart';
 import '../services/api_service.dart';
 import '../widgets/movie_card.dart';
@@ -17,6 +18,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final ApiService _apiService = ApiService();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   Timer? _debounce;
   List<Movie> _searchResults = [];
   bool _isLoading = false;
@@ -56,6 +58,19 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _loadTrendingMovies();
+
+    // Intercept Arrow Down key in search bar to move focus to results
+    _searchFocusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        final key = event.logicalKey;
+        if (key == LogicalKeyboardKey.arrowDown) {
+          FocusScope.of(context).nextFocus();
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
+
     if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
       _searchController.text = widget.initialQuery!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -68,6 +83,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void dispose() {
     _debounce?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -122,6 +138,14 @@ class _SearchScreenState extends State<SearchScreen> {
       _searchResults = results;
       _isLoading = false;
     });
+
+    if (results.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _searchFocusNode.nextFocus();
+        }
+      });
+    }
   }
 
   Widget _buildGlassPanel({required Widget child, double borderRadius = 12, EdgeInsetsGeometry? padding}) {
@@ -179,11 +203,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: TextField(
                   controller: _searchController,
+                  focusNode: _searchFocusNode,
                   autofocus: true,
                   style: const TextStyle(color: onSurface, fontSize: 18, fontFamily: 'Cairo'),
                   cursorColor: primary,
                   textInputAction: TextInputAction.search,
-                  onSubmitted: _performSearch,
+                  onSubmitted: (query) {
+                    _performSearch(query);
+                    _searchFocusNode.nextFocus();
+                  },
                   onChanged: (query) {
                     setState(() {}); // Update the clear button visibility instantly
                     if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -409,6 +437,19 @@ class __SuggestionChipState extends State<_SuggestionChip> {
   Widget build(BuildContext context) {
     return Focus(
       onFocusChange: (hasFocus) => setState(() => _isFocused = hasFocus),
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent) {
+          final key = event.logicalKey;
+          if (key == LogicalKeyboardKey.enter || 
+              key == LogicalKeyboardKey.select || 
+              key == LogicalKeyboardKey.numpadEnter ||
+              key == LogicalKeyboardKey.space) {
+            widget.onTap(widget.label);
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
