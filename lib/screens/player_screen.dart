@@ -258,7 +258,15 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (inIntroWindow && !_introSkipped) {
       if (!_showSkipIntro) setState(() => _showSkipIntro = true);
     } else if (pos.inSeconds >= 85 && _showSkipIntro) {
+      final hadFocus = _skipFocus.hasFocus;
       setState(() => _showSkipIntro = false);
+      if (hadFocus) {
+        if (_showControls) {
+          _playFocus.requestFocus();
+        } else {
+          _rootFocus.requestFocus();
+        }
+      }
     }
   }
 
@@ -406,10 +414,18 @@ class _PlayerScreenState extends State<PlayerScreen>
   void _skipIntro() {
     if (widget.isLive) return;
     _controller.seekTo(const Duration(seconds: 90));
+    final hadFocus = _skipFocus.hasFocus;
     setState(() {
       _showSkipIntro = false;
       _introSkipped = true;
     });
+    if (hadFocus) {
+      if (_showControls) {
+        _playFocus.requestFocus();
+      } else {
+        _rootFocus.requestFocus();
+      }
+    }
     _toast('تم تخطي المقدمة', Icons.skip_next_rounded);
   }
 
@@ -585,6 +601,14 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // When controls are hidden, any key shows them
     if (!_showControls) {
+      if (_showSkipIntro &&
+          (k == LogicalKeyboardKey.enter ||
+           k == LogicalKeyboardKey.select ||
+           k == LogicalKeyboardKey.numpadEnter ||
+           k == LogicalKeyboardKey.space)) {
+        _skipIntro();
+        return KeyEventResult.handled;
+      }
       _showControlsAndFocus();
       if (k == LogicalKeyboardKey.arrowLeft) {
         _seekFocus.requestFocus();

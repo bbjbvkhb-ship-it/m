@@ -1,7 +1,7 @@
 {
-  "version": "1.0.4",
-  "build_number": 5,
+  "version": "1.0.5",
+  "build_number": 6,
   "apk_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/app-release.apk",
   "ipa_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/Runner.ipa",
-  "changelog": "- تحديث شعار وأيقونة التطبيق الرسمية إلى الشعار الجديد TV Plus.\n- تحسينات عامة في واجهة المستخدم والاستقرار."
+  "changelog": "- إصلاح مشكلة فقدان التركيز (Focus) عند الضغط على زر تخطي المقدمة أو اختفائه.\n- إمكانية تخطي المقدمة مباشرة بالضغط على Enter عند إخفاء عناصر التحكم.\n- إصلاحات وتحسينات في الأداء والاستقرار للتلفزيونات."
 }
