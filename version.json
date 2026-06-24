@@ -1,7 +1,7 @@
 {
-  "version": "1.0.3",
-  "build_number": 4,
+  "version": "1.0.4",
+  "build_number": 5,
   "apk_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/app-release.apk",
   "ipa_url": "https://github.com/bbjbvkhb-ship-it/m/releases/latest/download/Runner.ipa",
-  "changelog": "- تفعيل التحديث التلقائي بالكامل من داخل التطبيق (دون الحاجة لفتح المتصفح).\n- إضافة شريط تحميل يوضح تقدم تنزيل التحديث."
+  "changelog": "- تحديث شعار وأيقونة التطبيق الرسمية إلى الشعار الجديد TV Plus.\n- تحسينات عامة في واجهة المستخدم والاستقرار."
 }
